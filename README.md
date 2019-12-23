@@ -31,3 +31,31 @@ out: filtered restaurants that face tramline (are on same street)
 ## Render restaurant list
 - make look nice
 
+# Configuration file format
+
+```
+{
+	"organizers" : [
+		{ 
+			"username" : "ff",
+			"name"  : "Fred",
+			"email" : "fred@feuerstein.ch"
+		}, 
+		{
+			"username"    : "jd"
+			"name"  : "John",
+			"email" : "john@doe.com"
+		}
+	],
+	"tramlines": [ 2, 3, 4,  5, 6, 7,  8, 9, 10,  11, 13, 14 ],
+	"history" : [
+		{
+			"month" : 1,
+			"organizer" : "ff",
+			"tramline" : 4
+		}
+	]
+}
+```
+
+
