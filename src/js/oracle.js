@@ -1,4 +1,5 @@
 const fs = require('fs');
+const nodemailer = require('nodemailer');
 
 const debug = true;
 
@@ -19,7 +20,7 @@ fs.readFile(configFilePath, 'utf8', (error, data) => {
 			if (error) throw error;
 			
 			const recipient = config.organizers.find(organizer => organizer.username == moudi.organizer);
-			sendMail(recipient, moudi);
+			sendMail(recipient, moudi, config.mailconfig);
 		});
 	} 
 	else {
@@ -46,8 +47,25 @@ function getLastMoudi(history) {
 	return history.length == 0 ? null : history[history.length-1];
 }
 
-function sendMail(recipient, moudi) {
-	log(`To: ${recipient.email}\n\nHi ${recipient.name},\nyou have to organize next moudi (${moudi.month}) at tramline ${moudi.tramline}.\nGood luck!`);
+function sendMail(recipient, moudi, mailconfig) {
+	const transport = nodemailer.createTransport({
+		host: mailconfig.host,
+		port: mailconfig.port,
+		secure: mailconfig.secure,
+		auth: {
+			user: mailconfig.user,
+			pass: mailconfig.pass
+		}
+	});
+	transport.sendMail({
+		from: mailconfig.from,
+		to: recipient.email,
+		subject: `[Moudi-Oracle] Next Moudi: ${moudi.month}`,
+		text: `Hi ${recipient.name},\n\nYou have been chosen to organize the next Moudi (${moudi.month}) at tramline ${moudi.tramline}.\nGood luck!\n\nYours truly,\nMoudi Oracle`
+	}, (error) => {
+		if (error) throw error;
+		log(`Mail successfully sent to ${recipient.email}`);
+	});
 }
 
 function determineNextMoudi(organizers, tramlines, history) {

@@ -1,0 +1,22 @@
+{
+  "name": "moudi-oracle",
+  "version": "0.1.0",
+  "description": "The Moudi Oracle determines the next Moudi by applying complicated logic and using atmospheric waves",
+  "main": "src/js/oracle.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zaploink/moudi-oracle.git"
+  },
+  "author": "chb",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zaploink/moudi-oracle/issues"
+  },
+  "homepage": "https://github.com/zaploink/moudi-oracle#readme",
+  "dependencies": {
+    "nodemailer": "^6.4.2"
+  }
+}

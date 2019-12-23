@@ -35,6 +35,14 @@ out: filtered restaurants that face tramline (are on same street)
 
 ```
 {
+	"mailconfig": {
+		"host": "mail.yourhost.ch",
+		"port": 465,
+		"secure": true,
+		"user": "***",
+		"pass": "***",
+		"from": "Moudi Oracle <***>"
+	},
 	"organizers" : [
 		{ 
 			"username" : "ff",
@@ -50,7 +58,7 @@ out: filtered restaurants that face tramline (are on same street)
 	"tramlines": [ 2, 3, 4,  5, 6, 7,  8, 9, 10,  11, 13, 14 ],
 	"history" : [
 		{
-			"month" : 1,
+			"month" : "2020-01",
 			"organizer" : "ff",
 			"tramline" : 4
 		}
