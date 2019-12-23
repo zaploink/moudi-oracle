@@ -10,17 +10,15 @@ fs.readFile(configFilePath, 'utf8', (error, data) => {
 	const config = JSON.parse(data);
 	
 	// check if run this month already unless --force
-	const now = new Date();
-	const runMonth = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
-	
+	const currentMonth = getCurrentMonth();
 	const force = (process.argv.length > 3 && process.argv[3] == "--force");
-	const lastMoudi = config.history.length == 0 ? null : config.history[config.history.length-1];
-	if (lastMoudi && lastMoudi.month == runMonth && !force) {
+	const lastMoudi = getLastMoudi(config);
+	if (lastMoudi && lastMoudi.month >= currentMonth && !force) {
 		log("Moudi oracle was already run this month. Not doing anything.");
 		return;
 	}
 	
-	const moudi = determineNextMoudi(runMonth, config);
+	const moudi = determineNextMoudi(config);
 	config.history.push(moudi);
 	fs.writeFile(configFilePath, JSON.stringify(config), error => {
 		if (error) throw error;
@@ -31,14 +29,40 @@ fs.readFile(configFilePath, 'utf8', (error, data) => {
 	});
 })
 
-function sendMail(recipient, moudi) {
-	log(`To: ${recipient.email}\n\nHi ${recipient.name},\nyou have to organize next moudi at tramline ${moudi.tramline}.\nGood luck!`);
+function getCurrentMonth() {
+	return getMonth(new Date());
 }
 
-function determineNextMoudi(runMonth, config) {
+function getMonth(date) {
+	return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}`;
+}
+
+function getLastMoudi(config) {
+	return config.history.length == 0 ? null : config.history[config.history.length-1];
+}
+
+function sendMail(recipient, moudi) {
+	log(`To: ${recipient.email}\n\nHi ${recipient.name},\nyou have to organize next moudi (${moudi.month}) at tramline ${moudi.tramline}.\nGood luck!`);
+}
+
+function determineNextMoudi(config) {
 	const organizer = selectOrganizer(config);
 	const tramline = selectTramline(config);
-	return { month : runMonth, organizer : organizer.username, tramline: tramline };
+	
+	const lastMoudi = getLastMoudi(config);
+	const nextMonth = lastMoudi ? incrementMonth(lastMoudi.month) : getCurrentMonth();
+	
+	return { month : nextMonth, organizer : organizer.username, tramline: tramline };
+}
+
+function incrementMonth(month) {
+	const date = new Date(Date.parse(month));
+	const nextMonth = date.getMonth() + 1 % 12;
+	date.setMonth(nextMonth);
+	if (nextMonth == 0) {
+		date.setYear(date.getYear() + 1);
+	}
+	return getMonth(date);
 }
 
 function selectOrganizer(config) {	
@@ -48,7 +72,7 @@ function selectOrganizer(config) {
 		return config.organizers[i];
 	}
 	
-	const lastUsername = config.history[config.history.length-1].organizer;
+	const lastUsername = getLastMoudi(config).organizer;
 	const i = config.organizers
 		.map(organizer => organizer.username)
 		.indexOf(lastUsername);
