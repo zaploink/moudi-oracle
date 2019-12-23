@@ -8,7 +8,19 @@ const configFilePath = process.argv[2];
 fs.readFile(configFilePath, 'utf8', (error, data) => {
 	if (error) throw error;
 	const config = JSON.parse(data);
-	const moudi = determineNextMoudi(config);
+	
+	// check if run this month already unless --force
+	const now = new Date();
+	const runMonth = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
+	
+	const force = (process.argv.length > 3 && process.argv[3] == "--force");
+	const lastMoudi = config.history.length == 0 ? null : config.history[config.history.length-1];
+	if (lastMoudi && lastMoudi.month == runMonth && !force) {
+		log("Moudi oracle was already run this month. Not doing anything.");
+		return;
+	}
+	
+	const moudi = determineNextMoudi(runMonth, config);
 	config.history.push(moudi);
 	fs.writeFile(configFilePath, JSON.stringify(config), error => {
 		if (error) throw error;
@@ -23,10 +35,10 @@ function sendMail(recipient, moudi) {
 	log(`To: ${recipient.email}\n\nHi ${recipient.name},\nyou have to organize next moudi at tramline ${moudi.tramline}.\nGood luck!`);
 }
 
-function determineNextMoudi(config) {
+function determineNextMoudi(runMonth, config) {
 	const organizer = selectOrganizer(config);
 	const tramline = selectTramline(config);
-	return { organizer : organizer.username, tramline: tramline };
+	return { month : runMonth, organizer : organizer.username, tramline: tramline };
 }
 
 function selectOrganizer(config) {	
