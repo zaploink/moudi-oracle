@@ -1,0 +1,25 @@
+{
+	"mailconfig": {
+		"host": "mail.yourhost.ch",
+		"port": 465,
+		"secure": true,
+		"user": "***",
+		"pass": "***",
+		"from": "Moudi Oracle <***>"
+	},
+	"organizers" : [
+		{
+			"username" : "ff",
+			"name"  : "Fred",
+			"email" : "fred@feuerstein.ch"
+		},
+		{
+			"username"    : "jd",
+			"name"  : "John",
+			"email" : "john@doe.com"
+		}
+	],
+	"tramlines": [ 2, 3, 4,  5, 6, 7,  8, 9, 10,  11, 13, 14 ],
+	"history" : []
+}
+

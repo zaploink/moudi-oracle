@@ -1,12 +1,12 @@
 # Tasks
 
-## TODO selector
-in: "remainder" list + last organizer
-out: updated "done" list + mail
-- select organizer (on init/first run)
-- select tramline (from remaining list) and put into done list
+## Organizer + Location selector
+in: state
+out: updated state
+- select organizer (on init/first run) from organizer list, compare with last history
+- select tramline (from tramline list), filtered by history
 - if not init select alternate organizer and set as "last organizer"
-- store lists
+- store lists/state
 - send mail to organizer with tramline
 
 ## Restaurant selector (simple)
@@ -31,6 +31,20 @@ out: filtered restaurants that face tramline (are on same street)
 ## Render restaurant list
 - make look nice
 
+# Run
+
+- Install node.js
+- Run `npm install` in this directory
+- Run `node src/js/oracle.js <configfile.json> [--force]` to run the moudi-oracle
+
+The provided configuration file must be in the format documented below, you can find
+an example file with empty history (fill in proper organizers and mailer passwords)
+in the `config` folder.
+
+Note that the script can only be run once per month. It will exit, if it detects,
+that it has already been run for the current mont. You can use `--force` as 2nd 
+argument to force finding of next month's moudi.
+
 # Configuration file format
 
 ```
@@ -50,7 +64,7 @@ out: filtered restaurants that face tramline (are on same street)
 			"email" : "fred@feuerstein.ch"
 		}, 
 		{
-			"username"    : "jd"
+			"username"    : "jd",
 			"name"  : "John",
 			"email" : "john@doe.com"
 		}
