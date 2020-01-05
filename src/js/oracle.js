@@ -2,6 +2,7 @@ const fs = require('fs');
 const nodemailer = require('nodemailer');
 
 const debug = true;
+const sendmail = true;
 
 check (process.argv.length > 2, 'Argument missing: config file must be provided');
 
@@ -15,16 +16,20 @@ fs.readFile(configFilePath, 'utf8', (error, data) => {
 	if (shouldRun(config.history) || force) {
 		const moudi = determineNextMoudi(config.organizers, config.tramlines, config.history);
 		config.history.push(moudi);
+
+		log(`[${new Date().toLocaleString("de-CH")}] Moudi oracle has been invoked successfully: ${moudi.month} will be organized by ${moudi.organizer} on tramline #${moudi.tramline}`);
 		
 		fs.writeFile(configFilePath, JSON.stringify(config), error => {
 			if (error) throw error;
-			
-			const recipient = config.organizers.find(organizer => organizer.username == moudi.organizer);
-			sendMail(recipient, moudi, config.mailconfig);
+		
+			if (sendmail) {
+				const recipient = config.organizers.find(organizer => organizer.username == moudi.organizer);
+				sendMail(recipient, moudi, config.mailconfig);
+			}
 		});
 	} 
 	else {
-		log("Moudi oracle was already run this month. Not doing anything.");
+		log("Moudi oracle has already run this month. Not doing anything.");
 	}
 	
 })
