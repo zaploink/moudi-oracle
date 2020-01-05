@@ -23,8 +23,9 @@ fs.readFile(configFilePath, 'utf8', (error, data) => {
 			if (error) throw error;
 		
 			if (sendmail) {
-				const recipient = config.organizers.find(organizer => organizer.username == moudi.organizer);
-				sendMail(recipient, moudi, config.mailconfig);
+				const recipient = config.organizers.find(user => user.username == moudi.organizer);
+				const cc = config.organizers.filter(user => user.username != moudi.organizer).map(user => user.email); 
+				sendMail(recipient, cc, moudi, config.mailconfig);
 			}
 		});
 	} 
@@ -52,7 +53,7 @@ function getLastMoudi(history) {
 	return history.length == 0 ? null : history[history.length-1];
 }
 
-function sendMail(recipient, moudi, mailconfig) {
+function sendMail(recipient, cc, moudi, mailconfig) {
 	const transport = nodemailer.createTransport({
 		host: mailconfig.host,
 		port: mailconfig.port,
@@ -62,14 +63,16 @@ function sendMail(recipient, moudi, mailconfig) {
 			pass: mailconfig.pass
 		}
 	});
+	
 	transport.sendMail({
 		from: mailconfig.from,
 		to: recipient.email,
+		cc: cc,
 		subject: `[Moudi-Oracle] Next Moudi: ${moudi.month}`,
 		text: `Hi ${recipient.name},\n\nYou have been chosen to organize the next Moudi (${moudi.month}) at tramline ${moudi.tramline}.\nGood luck!\n\nYours truly,\nMoudi Oracle`
 	}, (error) => {
 		if (error) throw error;
-		log(`Mail successfully sent to ${recipient.email}`);
+		log(`Mail successfully sent to ${recipient.email} with CC to ${cc}`);
 	});
 }
 
