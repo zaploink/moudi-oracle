@@ -45,6 +45,43 @@ Note that the script can only be run once per month. It will exit, if it detects
 that it has already been run for the current mont. You can use `--force` as 2nd 
 argument to force finding of next month's moudi.
 
+## Run as Cron Job
+
+Note that cron sends a mail if there's a problem during execution. This is no
+good on systems that have no mail infrastructure set up.
+
+It's better to log the cron output by redirecting `sterr` to `stout` and using
+the standard unix logging facilities, as described in [this post](https://unix.stackexchange.com/a/330):
+
+`0 0 1 * * node oracle.js config.json 2>&1 | /usr/bin/logger -t moudi-oracle`
+
+Output will be in `/var/log/messages` (can be filtered by tag `moudi-oracle`)
+
+If node has been installed with `nvm` then it will be not be available systemwide.
+NVM has to be set up correctly before running and then `$(which node) ...` should be
+used to select the default node version as provided by NVM. All of this setup code
+including the invocation of oracle.js is best put into a `run-moudi.sh` script which
+can then be executed with _cron_:
+
+```
+#!/bin/bash
+
+# NVM needs the ability to modify your current shell session's env vars,
+# which is why it's a sourced function.
+# See https://gist.github.com/simov/cdbebe2d65644279db1323042fcf7624
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+
+# uncomment the line below if you need a specific version of node
+# other than the one specified as `default` alias in NVM (optional)
+# nvm use 4 1> /dev/null
+
+# run moudi with the node version selected by NVM
+MOUDI_HOME=$HOME/moudi
+$(which node) $MOUDI_HOME/oracle/src/js/oracle.js $MOUDI_HOME/config.json 2>&1
+```
+
 # Configuration file format
 
 ```
