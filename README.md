@@ -117,4 +117,10 @@ $(which node) $MOUDI_HOME/oracle/src/js/oracle.js $MOUDI_HOME/config.json 2>&1
 }
 ```
 
+# Web
+
+- [Leaflet](https://leafletjs.com) an open-source JavaScript library
+for mobile-friendly interactive maps
+- [OsmToGeoJSON](https://github.com/tyrasd/osmtogeojson) Converts OSM data into GeoJSON.
+
 
