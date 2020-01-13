@@ -64,6 +64,13 @@ var moudi = function () {
         geoJsonLayer : null
     };
 
+    const tramColors = [
+        /*0*/ null, null, "#E10917", "#048930", "#11296F",
+        /*5*/ "#734522", "#CA7D3B", "#000000", "#8AB51F", "#521882",
+        /*10*/ "#E12372", "#048930", "#5EB3DB", "#FFC102", "#018DC5",
+        /*15*/ "#D8242A", null, "#8D224D"
+    ];
+
     function initTramLines() {
         overpass.tramlines(function(result) {
             console.debug(`Query returned ${result.elements.length} tram relations`);
@@ -76,7 +83,7 @@ var moudi = function () {
             for (var i = 2; i <= 17; i++) { // skip 16, does not exist
                 const tram = tramsByNumber.get(i.toString());
                 if (tram) {
-                    $('#tram-selector').append(`<option value="${i}">${tram.tags.name}</option>`);
+                    $('#tram-selector').append(`<option value="${i}" style="color:${tramColors[i]}">${tram.tags.name}</option>`);
                 }
             }
             cache.tramsByNumber = tramsByNumber;
@@ -111,11 +118,12 @@ var moudi = function () {
 
             const geoJsonLayer = L.geoJson(resultAsGeojson, {
                 style: function (feature) {
-                    if (feature.geometry.type === "LineString") {
-                        return {color: "#5050d0"}; // route elements
+                    const tramColor = tramColors[tramId];
+                    if (feature.properties.type === "way") {
+                        return {color: tramColor }; // route elements
                     }
                     if (feature.properties.tags.railway === "tram_stop") {
-                        return {color: "#0000d0", opacity: 1.0, weight: 2, fill: "#a0a0d0", fillOpacity: 0.5}; // stations
+                        return {color: tramColor, opacity: 1.0, weight: 2, fill: tramColor, fillOpacity: 0.4}; // stations
                     }
                 },
                 pointToLayer: function (point, latlng) {
