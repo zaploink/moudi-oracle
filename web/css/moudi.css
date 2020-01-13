@@ -9,12 +9,17 @@ html, body, #map {
 }
 
 #overpass-api-controls {
-    padding: 10px;
-    background-color: rgb(255, 255, 255);
+    background-color: #ffffff;
+    padding: 0.5em;
 }
 
-#overpass-api-controls a {
-    display: inline;
+#overpass-api-controls label {
+    display: inline-block;
+    width: 5em;
+}
+
+#overpass-api-controls select {
+    width: 30em;
 }
 
 div.restaurant-title {

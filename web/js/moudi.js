@@ -73,7 +73,15 @@ var moudi = function () {
     ];
 
     function readHistory() {
-        return null;
+        const $historySelector = $('#history-selector');
+        $.get("/cgi-bin/history.py")
+            .done(result => {
+                const history = JSON.parse(result);
+                history.forEach(item => $historySelector.append(`<option value="${item.tramline}">${item.month} : Tram #${item.tramline} by ${item.organizer}</option>`));
+            })
+            .fail(error => {
+                $historySelector.append(`<option>No moudi history present.</option>`);
+            });
     }
 
     function initTramLines(history) {
@@ -85,11 +93,15 @@ var moudi = function () {
             }
             console.debug(`Mapped to a total of ${tramsByNumber.size} tram lines`);
             console.debug(tramsByNumber);
+
+            const $tramSelector = $('#tram-selector');
+            $tramSelector.empty();
+            $tramSelector.append(`<option value="-1">Select one of ${tramsByNumber.size} tramlines.</option>`);
             for (var i = 2; i <= 17; i++) { // skip 16, does not exist
                 const tram = tramsByNumber.get(i.toString());
                 if (tram) {
                     // TODO: add only trams from history
-                    $('#tram-selector').append(`<option value="${i}" style="color:${tramColors[i]}">${tram.tags.name}</option>`);
+                    $tramSelector.append(`<option value="${i}" style="color:${tramColors[i]}">${tram.tags.name}</option>`);
                 }
             }
             cache.tramsByNumber = tramsByNumber;
