@@ -113,19 +113,25 @@
         $.get(url, function(result) {
           console.debug(`Query returned ${result.elements.length} elements`);
           console.debug(result);
+
+          // filter out all platforms and stops of relation (uninteresting or already contained in result.elements, respectively)
+          const relation = result.elements.find(elem => elem.type == "relation");
+          relation.members = relation.members.filter(member => member.role != "platform" && member.role != "stop");
+
           const resultAsGeojson = osmtogeojson(result);
           console.debug(resultAsGeojson);
+
           const resultLayer = L.geoJson(resultAsGeojson, {
             style: function (feature) {
               return { color: "#ff0000" };
             },
             filter: function (feature, layer) {
+              // some restaurants may be contained as way/polygon rather than node -> map to point
               const isPolygon = (feature.geometry) && (feature.geometry.type !== undefined) && (feature.geometry.type === "Polygon");
               if (isPolygon) {
                 feature.geometry.type = "Point";
                 const polygonCenter = L.latLngBounds(feature.geometry.coordinates[0]).getCenter();
                 feature.geometry.coordinates = [ polygonCenter.lat, polygonCenter.lng ];
-                console.debug(`Transforming node ${feature.properties} to polygon...`);
               }
               return true;
             },
