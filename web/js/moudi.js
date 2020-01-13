@@ -72,7 +72,11 @@ var moudi = function () {
         /*15*/ "#D8242A", null, "#8D224D"
     ];
 
-    function initTramLines() {
+    function readHistory() {
+        return null;
+    }
+
+    function initTramLines(history) {
         overpass.tramlines(function(result) {
             console.debug(`Query returned ${result.elements.length} tram relations`);
             const tramsByNumber = new Map();
@@ -84,6 +88,7 @@ var moudi = function () {
             for (var i = 2; i <= 17; i++) { // skip 16, does not exist
                 const tram = tramsByNumber.get(i.toString());
                 if (tram) {
+                    // TODO: add only trams from history
                     $('#tram-selector').append(`<option value="${i}" style="color:${tramColors[i]}">${tram.tags.name}</option>`);
                 }
             }
@@ -174,21 +179,22 @@ var moudi = function () {
 
     function init() {
         cache.map = L.map('map').setView([47.376981, 8.5405079], 14);
+        cache.catIcon = L.icon({
+            iconUrl: 'icons/pusheen.png',
+            iconSize: [63, 54],
+        });
+
         L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: 'Map data &copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors</a>'
         }).addTo(cache.map);
 
-        initTramLines();
+        const history = readHistory();
+        initTramLines(history);
         $("#tram-selector").change(function () {
             const tramId = $("#tram-selector option:selected").val();
             cache.geoJsonLayer && cache.geoJsonLayer.clearLayers();
             loadRouteAndRestaurants(tramId);
-        });
-
-        cache.catIcon = L.icon({
-            iconUrl: 'icons/pusheen.png',
-            iconSize: [63, 54],
         });
     }
 
