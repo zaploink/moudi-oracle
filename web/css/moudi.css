@@ -16,3 +16,15 @@ html, body, #map {
 #overpass-api-controls a {
     display: inline;
 }
+
+div.restaurant-title {
+    font-weight: bold;
+    text-decoration: underline;
+    margin-bottom: 0.5em;
+}
+div.tram-route {
+    font-weight: bold;
+}
+div.tram-stop {
+    font-weight: bold;
+}

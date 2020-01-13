@@ -61,7 +61,8 @@ var moudi = function () {
         tramsByNumber : null,
         tramRelation : null,
         map : null,
-        geoJsonLayer : null
+        geoJsonLayer : null,
+        catIcon : null
     };
 
     const tramColors = [
@@ -100,6 +101,16 @@ var moudi = function () {
         }
     }
 
+    function getDetails(tags) {
+        var str = "";
+        str += tags['addr:housenumber'] ? `<div>${tags['addr:street']} ${tags['addr:housenumber']}</div>` : '';
+        str += tags['addr:city'] ? `<div>${tags['addr:postcode']} ${tags['addr:city']}</div>` : '';
+        str += tags['website'] ? `<a href="${tags['website']}" target="_blank">${tags['website']}</a>` : '';
+        str += tags['phone'] ? `<div>${tags['phone']}</div>` : '';
+        str += tags['opening_hours'] ? `<div>${tags['opening_hours']}</div>` : '';
+        return str;
+    }
+
     function loadRouteAndRestaurants(tramId) {
         console.debug(`Loading route and restaurants for tram #${tramId}`);
         const tram = cache.tramsByNumber.get(tramId);
@@ -130,10 +141,9 @@ var moudi = function () {
                     if (point.properties.tags.railway === "tram_stop") {
                         return L.circleMarker(latlng);
                     }
-                    // TODO: should use something like https://github.com/lvoogdt/Leaflet.awesome-markers to style the markers
                     return L.marker(latlng, {
-                        title: point.properties.tags.name,
-                        riseOnHover: true
+                        title: point.properties.tags.name, // tool-tip on hover
+                        icon: cache.catIcon
                     });
                 },
                 filter: function (feature, layer) {
@@ -141,18 +151,15 @@ var moudi = function () {
                     return true;
                 },
                 onEachFeature: function (feature, layer) {
+                    const tags = feature.properties.tags;
                     var popupContent = "";
                     if (feature.properties.type === "way") {
-                        popupContent += `<div><b>${relation.tags.name}</b></div>`;
+                        popupContent += `<div class="tram-route">${relation.tags.name}</div>`;
                     } else if (feature.properties.tags.railway === "tram_stop") {
-                        popupContent += `<div><b>${feature.properties.tags.name}</b></div>`;
+                        popupContent += `<div class="tram-stop">${tags.name}</div>`;
                     } else if (feature.properties.tags.amenity === "restaurant") {
-                        popupContent += `<div>Restaurant: <b>${feature.properties.tags.name}</b></div>`;
-                        var keys = Object.keys(feature.properties.tags);
-                        keys.forEach(function (key) {
-                            popupContent = popupContent + "<dt>" + key + "</dt><dd>" + feature.properties.tags[key] + "</dd>";
-                        });
-                        popupContent = popupContent + "</dl>"
+                        popupContent += `<div class="restaurant-title">${tags.name}</div>`;
+                        popupContent += getDetails(tags);
                     }
                     else {
                         popupContent += feature.id;
@@ -177,6 +184,11 @@ var moudi = function () {
             const tramId = $("#tram-selector option:selected").val();
             cache.geoJsonLayer && cache.geoJsonLayer.clearLayers();
             loadRouteAndRestaurants(tramId);
+        });
+
+        cache.catIcon = L.icon({
+            iconUrl: 'icons/pusheen.png',
+            iconSize: [63, 54],
         });
     }
 
