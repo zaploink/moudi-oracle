@@ -72,6 +72,17 @@ var moudi = function () {
         /*15*/ "#D8242A", null, "#8D224D"
     ];
 
+    function readVersion() {
+        $.get('version.txt')
+            .done(result => {
+                cache.version = result;
+                $("#version").text(cache.version);
+            })
+            .fail(error => {
+                $("#version").text("Unknown version.");
+            });
+    }
+
     function readHistory() {
         const $historySelector = $('#history-selector');
         $.get("/cgi-bin/history.py")
@@ -147,6 +158,9 @@ var moudi = function () {
             relation.members = relation.members.filter(member => member.role === "");
             cache.tramRelation = relation;
 
+            const restaurantCount = result.elements.filter(elem => elem.tags.amenity === "restaurant").length;
+            updateResult(`Found ${restaurantCount} moudi candidates within ${distance}m of tram line #${tramId}.`);
+
             const resultAsGeojson = osmtogeojson(result);
             console.debug(resultAsGeojson);
 
@@ -192,7 +206,10 @@ var moudi = function () {
             }).addTo(cache.map);
             cache.geoJsonLayer = geoJsonLayer;
         });
+    }
 
+    function updateResult(resultString) {
+        $("#query-result").text(resultString);
     }
 
     function init() {
@@ -201,6 +218,7 @@ var moudi = function () {
             iconUrl: 'icons/pusheen.png',
             iconSize: [63, 54],
         });
+        cache.version = readVersion();
 
         L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
@@ -209,6 +227,7 @@ var moudi = function () {
 
         const history = readHistory();
         initTramLines(history);
+
         $("#tram-selector").change(loadSelectedRouteAndRestaurants);
         $("#distance-selector").change(loadSelectedRouteAndRestaurants);
     }

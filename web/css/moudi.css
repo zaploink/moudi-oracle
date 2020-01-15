@@ -8,7 +8,7 @@ html, body, #map {
     width: 100%;
 }
 
-#overpass-api-controls {
+#overpass-api-controls, #version-controls {
     background-color: #ffffff;
     padding: 0.5em;
 }
@@ -20,6 +20,10 @@ html, body, #map {
 
 #overpass-api-controls select {
     width: 30em;
+}
+
+#query-result-holder {
+    margin-top: 1em;
 }
 
 div.restaurant-title {
