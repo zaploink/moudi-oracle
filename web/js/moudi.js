@@ -224,6 +224,7 @@ var moudi = function () {
             maxZoom: 18,
             attribution: 'Map data &copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors</a>'
         }).addTo(cache.map);
+        L.control.scale({ position: 'bottomright' }).addTo(cache.map);
 
         const history = readHistory();
         initTramLines(history);
