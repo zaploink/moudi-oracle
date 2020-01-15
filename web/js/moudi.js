@@ -22,7 +22,7 @@ var moudi = function () {
 
                 $.get(url, onSuccess);
             },
-            tramroute : function(tramId, onSuccess) {
+            tramroute : function(tramId, distance, onSuccess) {
                 const query = `[out:json];
                   rel(id:${tramId});
                   ._->.tram;
@@ -33,7 +33,7 @@ var moudi = function () {
                   nwr[amenity=restaurant](around:100);
                   ._->.stopRest;
                   .tram;
-                  nwr[amenity=restaurant](around:20);
+                  nwr[amenity=restaurant](around:${distance});
                   ._->.tramRest;
                   node.tramRest.stopRest;
                   ._->.candidates;
@@ -128,11 +128,17 @@ var moudi = function () {
         return str;
     }
 
-    function loadRouteAndRestaurants(tramId) {
-        console.debug(`Loading route and restaurants for tram #${tramId}`);
+    function loadSelectedRouteAndRestaurants() {
+        cache.geoJsonLayer && cache.geoJsonLayer.clearLayers();
+
+        const tramId = $("#tram-selector option:selected").val();
+        if (tramId < 0) return;
+        const distance = $("#distance-selector option:selected").val();
+
+        console.debug(`Loading route and restaurants for tram #${tramId} with distance ${distance}`);
         const tram = cache.tramsByNumber.get(tramId);
 
-        overpass.tramroute(tram.id, function (result) {
+        overpass.tramroute(tram.id, distance, function (result) {
             console.debug(`Query returned ${result.elements.length} elements`);
             console.debug(result);
 
@@ -203,11 +209,8 @@ var moudi = function () {
 
         const history = readHistory();
         initTramLines(history);
-        $("#tram-selector").change(function () {
-            const tramId = $("#tram-selector option:selected").val();
-            cache.geoJsonLayer && cache.geoJsonLayer.clearLayers();
-            loadRouteAndRestaurants(tramId);
-        });
+        $("#tram-selector").change(loadSelectedRouteAndRestaurants);
+        $("#distance-selector").change(loadSelectedRouteAndRestaurants);
     }
 
     return {
