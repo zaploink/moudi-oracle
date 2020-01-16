@@ -231,6 +231,9 @@ var moudi = function () {
 
         $("#tram-selector").change(loadSelectedRouteAndRestaurants);
         $("#distance-selector").change(loadSelectedRouteAndRestaurants);
+
+        // fixes non-reacting selection controls on mobile
+        $("#overpass-api-controls div").each(function() { L.DomEvent.disableClickPropagation(this) });
     }
 
     return {
