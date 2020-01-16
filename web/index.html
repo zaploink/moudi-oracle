@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Example: Overpass-API with Leaflet.js</title>
+    <title>Tram-Moudi Cockpit</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css"/>
@@ -12,6 +12,7 @@
     <div class="leaflet-control-container">
         <div class="leaflet-top leaflet-right">
             <div id="overpass-api-controls" class="leaflet-bar leaflet-control">
+                <div class="title">Tram-Moudi Control Center</div>
                 <div>
                     <label for="tram-selector"
                            title="Display moudi candidates for a specific tram line">Tramline: </label>
@@ -51,7 +52,7 @@
 <script src="js/moudi.js"></script>
 <script>
     window.onload = function () {
-        moudi.init(jQuery);
+        moudi.init();
     }
 </script>
 

@@ -146,9 +146,10 @@ var moudi = function () {
         if (tramId < 0) return;
         const distance = $("#distance-selector option:selected").val();
 
-        console.debug(`Loading route and restaurants for tram #${tramId} with distance ${distance}`);
+        updateResult(`Searching for restaurants on route #${tramId}...`);
         const tram = cache.tramsByNumber.get(tramId);
 
+        console.debug(`Loading route and restaurants for tram #${tramId} with distance ${distance}`);
         overpass.tramroute(tram.id, distance, function (result) {
             console.debug(`Query returned ${result.elements.length} elements`);
             console.debug(result);
