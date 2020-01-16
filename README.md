@@ -1,35 +1,6 @@
-# Tasks
+# Moudi Oracle
 
-## Organizer + Location selector
-in: state
-out: updated state
-- select organizer (on init/first run) from organizer list, compare with last history
-- select tramline (from tramline list), filtered by history
-- if not init select alternate organizer and set as "last organizer"
-- store lists/state
-- send mail to organizer with tramline
-
-## Restaurant selector (simple)
-in: tramline
-out: restaurant list
-config: search diameter
-- select all tramstations of line t
-- select all restaurants in proximity of stop(t)
-- send mail with restaurant list (names)
-
-## Apply Moudi rules
-in: restaurant list (including address, geolocation, e.g. grouped by tramstop), tramline
-out: filtered restaurants that face tramline (are on same street)
-- find street segments of tram
-- select restaurants that have address that has its address on street segment
-
-## Restaurant suggestion
-- check tripadvisor
-- select best restaurants
-- order by whatever criteria
-
-## Render restaurant list
-- make look nice
+The Moudi oracle offers invaluable automated support for Moudi organizers.
 
 # Run
 
@@ -119,8 +90,39 @@ $(which node) $MOUDI_HOME/oracle/src/js/oracle.js $MOUDI_HOME/config.json 2>&1
 
 # Web
 
-- [Leaflet](https://leafletjs.com) an open-source JavaScript library
-for mobile-friendly interactive maps
+The web site shows tram lines, restaurant candidates and history. At its core
+it uses the [Overpass API](https://wiki.openstreetmap.org/wiki/Overpass_API) of
+the [Open Street Map Project](https://www.openstreetmap.org) to 
+search for map features and to perform geospatial selection of restaurants.
+
+## Deployment
+
+The web site implementation can be found in the `web` folder of the project.
+No build is necessary. The site can be be deployed by pulling the latest
+updates to a git repo on the deployment machine and by serving the `web` folder
+of the project as document root, e.g. with _lighttpd_.
+
+To run *cgi-scripts* (e.g. to fetch the Moudi history), Python needs to be
+set up and the HTTP server must be configured to run Python files in `cgi-bin`.
+
+The `config.json` file should be located outside the `web` directory.
+
+## Version
+
+A _git post-merge hook_ is used to write the current version along with
+the checkout time to a file `version.txt`, which is displayed by the web site
+if available.
+
+*.git/hooks/post-merge, .git/hooks/post-checkout* 
+```
+#!/bin/sh
+# write version.txt file with commit ID and current time
+git log -n 1 --date=format:"%Y-%m-%d %H:%M" --format=format:"rev.%h (deployed at %ad)" HEAD > web/version.txt
+```
+
+## Libraries
+
+- [Leaflet](https://leafletjs.com) an open-source JavaScript library for mobile-friendly interactive maps
 - [OsmToGeoJSON](https://github.com/tyrasd/osmtogeojson) Converts OSM data into GeoJSON.
 
 
