@@ -86,8 +86,7 @@ var moudi = function () {
     function readHistory() {
         const $historySelector = $('#history-selector');
         $.get("/cgi-bin/history.py")
-            .done(result => {
-                const history = JSON.parse(result);
+            .done(history => {
                 history.forEach(item => $historySelector.append(`<option value="${item.tramline}">${item.month} : Tram #${item.tramline} by ${item.organizer}</option>`));
             })
             .fail(error => {
