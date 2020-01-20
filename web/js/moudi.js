@@ -62,7 +62,8 @@ var moudi = function () {
         tramRelation : null,
         map : null,
         geoJsonLayer : null,
-        catIcon : null
+        catIcon : null,
+        history : null
     };
 
     const tramColors = [
@@ -85,9 +86,16 @@ var moudi = function () {
 
     function readHistory() {
         const $historySelector = $('#history-selector');
+        $historySelector.empty();
+
         $.get("/cgi-bin/history.py")
             .done(history => {
-                history.forEach(item => $historySelector.append(`<option value="${item.tramline}">${item.month} : Tram #${item.tramline} by ${item.organizer}</option>`));
+                cache.history = history;
+                history.forEach(item => {
+                    // const state = item.rating ? '\u2b50'.repeat(item.rating) : '\u23f3';
+                    const state = item.rating ? `\u2b50=${item.rating}` : '\u23f3';
+                    $historySelector.append(`<option value="${item.tramline}">${item.month} : Tram #${item.tramline} by ${item.organizer} (${state})</option>`);
+                });
             })
             .fail(error => {
                 $historySelector.append(`<option>No moudi history present.</option>`);
@@ -110,12 +118,83 @@ var moudi = function () {
             for (var i = 2; i <= 17; i++) { // skip 16, does not exist
                 const tram = tramsByNumber.get(i.toString());
                 if (tram) {
-                    // TODO: add only trams from history
                     $tramSelector.append(`<option value="${i}" style="color:${tramColors[i]}">${tram.tags.name}</option>`);
                 }
             }
             cache.tramsByNumber = tramsByNumber;
         });
+    }
+
+    function initUpdateDialog() {
+        const which = $( "#which" ), where = $( "#where" ), when = $( "#when" ), what = $( "#what"), token = $( "#token" );
+        const allFields = $( [] ).add( where ).add( when ).add( what ).add( token );
+
+        const dialog = $( "#history-update-form" ).dialog({
+            title: "Update Moudi record",
+            autoOpen: false,
+            height: 500,
+            width: 350,
+            modal: true,
+            buttons: {
+                "Update Moudi": function() {
+                    let valid = true;
+                    allFields.removeClass( "ui-state-error" );
+                    allFields.each(function() {
+                        valid = $(this).val().trim().length > 0;
+                        if (!valid) $(this).addClass( "ui-state-error");
+                    });
+                    if (valid) {
+                        updateMoudi({
+                            moudiId : which.val().split(/\s+/)[0],
+                            date: when.val(),
+                            restaurant: where.val(),
+                            rating: what.val(),
+                            token: token.val()
+                        });
+                        dialog.dialog( "close" );
+                    }
+                },
+                Cancel: function() {
+                    dialog.dialog( "close" );
+                }
+            },
+            close: function() {
+                allFields.removeClass( "ui-state-error" );
+                dialog.find("form")[0].reset();
+            }
+        });
+
+        $( "#history-update-btn" ).button().on( "click", function() {
+            const selected = $("#history-selector option:selected").text();
+            const historyId = selected.split(/\s+/)[0];
+            const title = selected.split(/\(/)[0];
+            const record = cache.history.find(e => e.month === historyId);
+
+            which.val(title);
+            when.val(record.date || '');
+            where.val(record.restaurant || '');
+            what.val(record.rating || '');
+
+            dialog.dialog( "open" );
+        });
+        when.datepicker( "option", "dateFormat", "yy-mm-dd" );
+    }
+
+    function showMessageDialog(title, message) {
+        const content = $( "#dialog-message p");
+        content.text(message);
+
+        const dialog = $( "#dialog-message" );
+        dialog.dialog({
+            title: title,
+            modal: true,
+            buttons: {
+                Ok: function() {
+                    $( this ).dialog( "close" );
+                }
+            }
+        });
+        dialog.dialog( "open");
     }
 
     // some restaurants may be contained as way/polygon rather than node in OSM result -> map to point in Leaflet
@@ -145,7 +224,7 @@ var moudi = function () {
         if (tramId < 0) return;
         const distance = $("#distance-selector option:selected").val();
 
-        updateResult(`Searching for restaurants on route #${tramId}...`);
+        updateStatus(`Searching for restaurants on route #${tramId}...`);
         const tram = cache.tramsByNumber.get(tramId);
 
         console.debug(`Loading route and restaurants for tram #${tramId} with distance ${distance}`);
@@ -159,7 +238,7 @@ var moudi = function () {
             cache.tramRelation = relation;
 
             const restaurantCount = result.elements.filter(elem => elem.tags.amenity === "restaurant").length;
-            updateResult(`Found ${restaurantCount} moudi candidates within ${distance}m of tram line #${tramId}.`);
+            updateStatus(`Found ${restaurantCount} moudi candidates within ${distance}m of tram line #${tramId}.`);
 
             const resultAsGeojson = osmtogeojson(result);
             console.debug(resultAsGeojson);
@@ -208,9 +287,27 @@ var moudi = function () {
         });
     }
 
-    function updateResult(resultString) {
+    function updateStatus(resultString) {
         $("#query-result").text(resultString);
     }
+
+    function updateMoudi(values) {
+        $.post("/cgi-bin/history-update.py", values) // sends values as form
+            .done(result => {
+                if (result && result.trim().length > 0) {
+                    // if something comes back, it's likely to be an error
+                    // some CGI-script handlers (python library HTTP server, for example) send back 200 always even if script sets the "Status: 400" header
+                    showMessageDialog("Something didn't work out", result);
+                } else {
+                    readHistory();
+                }
+            })
+            .fail(error => {
+                console.log(result);
+                showMessageDialog("Something didn't work out", error);
+            });
+    }
+
 
     function init() {
         cache.map = L.map('map').setView([47.376981, 8.5405079], 14);
@@ -228,6 +325,8 @@ var moudi = function () {
 
         const history = readHistory();
         initTramLines(history);
+        initUpdateDialog();
+        initMessageDialog();
 
         $("#tram-selector").change(loadSelectedRouteAndRestaurants);
         $("#distance-selector").change(loadSelectedRouteAndRestaurants);
