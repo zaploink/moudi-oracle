@@ -1,6 +1,8 @@
 import json
 
-with open('/home/pi/moudi/config.json') as config_file:
+config_path = '../../config.json'
+
+with open(config_path) as config_file:
     config = json.load(config_file)
     history = config['history']
 
