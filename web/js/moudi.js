@@ -177,6 +177,8 @@ var moudi = function () {
 
             dialog.dialog( "open" );
         });
+
+        when.datepicker();
         when.datepicker( "option", "dateFormat", "yy-mm-dd" );
     }
 
@@ -297,14 +299,15 @@ var moudi = function () {
                 if (result && result.trim().length > 0) {
                     // if something comes back, it's likely to be an error
                     // some CGI-script handlers (python library HTTP server, for example) send back 200 always even if script sets the "Status: 400" header
+                    console.log(result);
                     showMessageDialog("Something didn't work out", result);
                 } else {
                     readHistory();
                 }
             })
             .fail(error => {
-                console.log(result);
-                showMessageDialog("Something didn't work out", error);
+                console.log(error);
+                showMessageDialog("Something didn't work out", error.responseText);
             });
     }
 
@@ -326,7 +329,6 @@ var moudi = function () {
         const history = readHistory();
         initTramLines(history);
         initUpdateDialog();
-        initMessageDialog();
 
         $("#tram-selector").change(loadSelectedRouteAndRestaurants);
         $("#distance-selector").change(loadSelectedRouteAndRestaurants);

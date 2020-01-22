@@ -1,8 +1,8 @@
 import json
 import cgi, cgitb
 
-# test with CURL:  curl localhost:8000/cgi-bin/history-update.py -X POST -F "moudiId=2020-01" -F "date=2020-01-21" -F "restaurant=Hermanseck" -F "token=2837bbG2" -F "rating=4"
-cgitb.enable()
+# test with CURL: curl localhost:8000/cgi-bin/history-update.py -X POST -F "moudiId=2020-01" -F "date=2020-01-21" -F "restaurant=Hermanseck" -F "token=2837bbG2" -F "rating=4"
+# cgitb.enable()
 
 def findRecord(history, moudiId):
     return list(filter(lambda item: item['month'] == moudiId, history))[0]
@@ -29,7 +29,7 @@ def printResponse(status, statusMessage, responseText=""):
     print()
     print(responseText)
 
-config_path = '../../config.json'
+config_path = '../../../config.json'
 config = readConfig(config_path)
 history = config['history']
 authTokens = config['auth-tokens']
