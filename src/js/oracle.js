@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 
 const debug = true;
 const sendmail = true;
+const alphanum = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 check (process.argv.length > 2, 'Argument missing: config file must be provided');
 
@@ -12,10 +13,13 @@ fs.readFile(configFilePath, 'utf8', (error, data) => {
 	const config = JSON.parse(data);
 	
 	// check if run this month already unless --force
-	const force = (process.argv.length > 3 && process.argv[3] == "--force");
+	const force = (process.argv.length > 3 && process.argv[3] === "--force");
 	if (shouldRun(config.history) || force) {
 		const moudi = determineNextMoudi(config.organizers, config.tramlines, config.history);
 		config.history.push(moudi);
+
+		const token = createAuthToken();
+		config['auth-tokens'][moudi.month] = token;
 
 		log(`[${new Date().toLocaleString("de-CH")}] Moudi oracle has been invoked successfully: ${moudi.month} will be organized by ${moudi.organizer} on tramline #${moudi.tramline}`);
 		
@@ -23,9 +27,9 @@ fs.readFile(configFilePath, 'utf8', (error, data) => {
 			if (error) throw error;
 		
 			if (sendmail) {
-				const recipient = config.organizers.find(user => user.username == moudi.organizer);
-				const cc = config.organizers.filter(user => user.username != moudi.organizer).map(user => user.email); 
-				sendMail(recipient, cc, moudi, config.mailconfig);
+				const recipient = config.organizers.find(user => user.username === moudi.organizer);
+				const cc = config.organizers.filter(user => user.username !== moudi.organizer).map(user => user.email);
+				sendMail(recipient, cc, moudi, token, config.mailconfig);
 			}
 		});
 	} 
@@ -33,7 +37,7 @@ fs.readFile(configFilePath, 'utf8', (error, data) => {
 		log("Moudi oracle has already run this month. Not doing anything.");
 	}
 	
-})
+});
 
 function shouldRun(history) {
 	const currentMonth = getCurrentMonth();
@@ -50,10 +54,10 @@ function getMonth(date) {
 }
 
 function getLastMoudi(history) {
-	return history.length == 0 ? null : history[history.length-1];
+	return history.length === 0 ? null : history[history.length-1];
 }
 
-function sendMail(recipient, cc, moudi, mailconfig) {
+function sendMail(recipient, cc, moudi, token, mailconfig) {
 	const transport = nodemailer.createTransport({
 		host: mailconfig.host,
 		port: mailconfig.port,
@@ -69,7 +73,12 @@ function sendMail(recipient, cc, moudi, mailconfig) {
 		to: recipient.email,
 		cc: cc,
 		subject: `[Moudi-Oracle] Next Moudi: ${moudi.month}`,
-		text: `Hi ${recipient.name},\n\nYou have been chosen to organize the next Moudi (${moudi.month}) at tramline ${moudi.tramline}.\nGood luck!\n\nYours truly,\nMoudi Oracle`
+		text: `Hi ${recipient.name},\n\n`
+			+`You have been chosen to organize the next Moudi (${moudi.month}) at tramline ${moudi.tramline}.\n`
+			+`Good luck!\n\n`
+			+`Yours truly,\n`
+			+`Moudi Oracle\n\n`
+			+`PS: I think you will need this at some point of time: '${token}'.`
 	}, (error) => {
 		if (error) throw error;
 		log(`Mail successfully sent to ${recipient.email} with CC to ${cc}`);
@@ -93,7 +102,7 @@ function incrementMonth(month) {
 	const date = new Date(Date.parse(month));
 	const nextMonth = date.getMonth() + 1 % 12;
 	date.setMonth(nextMonth);
-	if (nextMonth == 0) {
+	if (nextMonth === 0) {
 		date.setYear(date.getYear() + 1);
 	}
 	return getMonth(date);
@@ -119,6 +128,14 @@ function selectTramline(tramlines, history) {
 	const historyTramlines = history.map(record => record.tramline);
 	const candidateTramlines = tramlines.filter(line => !historyTramlines.includes(line));
 	return candidateTramlines[Math.floor(Math.random()*candidateTramlines.length)];
+}
+
+function createAuthToken() {
+	let token = '';
+	for (i=0; i<8; i++) {
+		token += alphanum[Math.floor(Math.random() * alphanum.length)];
+	}
+	return token;
 }
 
 

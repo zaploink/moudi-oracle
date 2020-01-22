@@ -84,9 +84,16 @@ $(which node) $MOUDI_HOME/oracle/src/js/oracle.js $MOUDI_HOME/config.json 2>&1
 			"organizer" : "ff",
 			"tramline" : 4
 		}
-	]
+	],
+    "auth-tokens" : {
+         "2020-01": "a862rP1k"
+    }
 }
 ```
+
+Auth-tokens are generated when oracle creates history entry and sent
+to the organizer. It can be used to authorize modification of a history entry
+via web interface.
 
 # Web
 
